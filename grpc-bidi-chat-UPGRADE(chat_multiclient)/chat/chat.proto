@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package chat;
+
+option go_package = "example.com/grpcbidichatUPGRADE/pkg/chat;chat";
+
+service ChatService {
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+}
+
+message ChatMessage {
+  string from = 1;     // Tên người gửi
+  string to = 2;       // Tên người nhận
+  string message = 3;  // Nội dung
+}
