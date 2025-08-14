@@ -1,0 +1,12 @@
+# Bỏ qua database
+data/mysql/
+
+# Bỏ qua các file cấu hình nhạy cảm
+.env
+
+# Bỏ qua thư mục node_modules
+node_modules/
+
+# Bỏ qua các file tạm thời
+*.log
+*.tmp

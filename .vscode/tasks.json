@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Server",
+      "type": "shell",
+      "command": "go run ./cmd/web/",
+      "options": {
+        "cwd": "./backend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Client",
+      "type": "shell",
+      "command": "npm start",
+      "options": {
+        "cwd": "./frontend/profix-service"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Run All",
+      "dependsOn": ["Server", "Client"],
+      "dependsOrder": "parallel"
+    }
+  ]
+}

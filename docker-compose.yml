@@ -1,0 +1,74 @@
+services:
+  db:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123
+      MYSQL_DATABASE: profix-service
+    ports:
+      - "3307:3306"  # ⚠️ Mapping này là đúng nếu bạn muốn truy cập MySQL từ máy host qua port 3307
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--host=localhost", "--user=root", "--password=123"]
+      interval: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  # Backend service (Golang)
+  backend:
+    build: ./backend
+    container_name: backend
+    command: ["./scripts/wait-for-it.sh", "db", "3306", "--", "./main"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      retries: 5
+    networks:
+      - app-network
+
+  # Backend service 2 (Golang)
+  backend2:
+    build: ./backend
+    container_name: backend2
+    command: ["./scripts/wait-for-it.sh", "db", "3306", "--", "./main"]
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    networks:
+      - app-network 
+
+  # Frontend service (React build version)
+  frontend:
+    build:
+      context: ./frontend/profix-service
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "81:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/nginx.conf
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

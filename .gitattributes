@@ -1,0 +1,17 @@
+# Force LF cho các file script và mã nguồn
+*.sh text eol=lf
+*.go text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf
+
+# Không track line-ending cho MySQL data (vì đây là binary/local files)
+data/mysql/* -text
+
+# Mặc định cho các file còn lại: tự động chuẩn hóa về LF
+* text=auto eol=lf
