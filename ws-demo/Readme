@@ -1,0 +1,6 @@
+Dự án này đã thành công khi kết nối được ws sau khi deploy bằng tailscale funnel
+các client đã có thể gửi tin nhắn cho nhau và các tin nhắn cập nhật realtime
+
+Tech: 
+    backend: nodejs
+    frontend: html
