@@ -9,7 +9,8 @@ import (
 	"os"
 	"strings"
 
-	pb "example.com/grpcbidichatUPGRADE/pkg/chat"
+	pb "forchatic/pkg/chat"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

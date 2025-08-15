@@ -7,7 +7,8 @@ import (
 	"net"
 	"sync"
 
-	pb "example.com/grpcbidichatUPGRADE/pkg/chat"
+	pb "forchatic/pkg/chat"
+
 	"google.golang.org/grpc"
 )
 

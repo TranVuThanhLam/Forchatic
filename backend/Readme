@@ -1,0 +1,3 @@
+backend server
+ + Receive request from FE (API)
+ + Connect to internal server to send message
