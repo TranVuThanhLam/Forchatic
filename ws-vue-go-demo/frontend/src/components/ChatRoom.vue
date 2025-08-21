@@ -2,14 +2,27 @@
   <div class="card shadow-sm p-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">Phòng: {{ roomID }}</h5>
-      <small class="text-muted">Bạn: <strong>{{ username }}</strong></small>
+      <small class="text-muted"
+        >Bạn: <strong>{{ username }}</strong></small
+      >
     </div>
 
     <div class="chat-box mb-3 p-3" ref="chatBox">
       <template v-for="(group, gi) in groupedMessages" :key="gi">
-        <div :class="['mb-2 group-wrap', group.sender === username ? 'text-end' : 'text-start']">
+        <div
+          :class="[
+            'mb-2 group-wrap',
+            group.sender === username ? 'text-end' : 'text-start',
+          ]"
+        >
           <!-- Sender label (italic, faded) -->
-          <div v-if="group.sender" :class="['sender-label', group.sender === username ? 'me-label' : 'other-label']">
+          <div
+            v-if="group.sender"
+            :class="[
+              'sender-label',
+              group.sender === username ? 'me-label' : 'other-label',
+            ]"
+          >
             <em>{{ group.sender }}</em>
           </div>
 
@@ -20,7 +33,7 @@
             :class="[
               'msg-bubble',
               group.sender === username ? 'msg-me' : 'msg-other',
-              mi > 0 ? 'grouped' : ''
+              mi > 0 ? 'grouped' : '',
             ]"
           >
             {{ m.content }}
@@ -33,8 +46,13 @@
     </div>
 
     <div class="input-group">
-      <input type="text" class="form-control" v-model="input" placeholder="Nhập tin nhắn..."
-        @keyup.enter="sendMessage" />
+      <input
+        type="text"
+        class="form-control"
+        v-model="input"
+        placeholder="Nhập tin nhắn..."
+        @keyup.enter="sendMessage"
+      />
       <button class="btn btn-success" @click="sendMessage">Gửi</button>
     </div>
   </div>
@@ -42,100 +60,102 @@
 
 <script>
 export default {
-  props: ['username', 'roomID'],
+  props: ["username", "roomID"],
   data() {
     return {
       ws: null,
-      input: '',
+      input: "",
       rawMessages: [], // flat array of messages in chronological order
-    }
+    };
   },
   computed: {
     // group consecutive messages by same sender
     groupedMessages() {
-      const groups = []
+      const groups = [];
       for (const m of this.rawMessages) {
-        const last = groups[groups.length - 1]
+        const last = groups[groups.length - 1];
         if (last && last.sender === m.sender) {
-          last.items.push(m)
+          last.items.push(m);
         } else {
-          groups.push({ sender: m.sender, items: [m] })
+          groups.push({ sender: m.sender, items: [m] });
         }
       }
-      return groups
-    }
+      return groups;
+    },
   },
   mounted() {
     // load history (page 1)
     fetch(`/history?room=${encodeURIComponent(this.roomID)}&page=1&limit=100`)
-      .then(r => r.json())
-      .then(arr => {
+      .then((r) => r.json())
+      .then((arr) => {
         // arr is array of messages in chronological order (older -> newer)
-        this.rawMessages = arr.map(a => ({
+        this.rawMessages = arr.map((a) => ({
           id: a.id,
           sender: a.sender,
           content: a.content,
-          ts: a.ts
-        }))
-        this.$nextTick(this.scrollBottom)
+          ts: a.ts,
+        }));
+        this.$nextTick(this.scrollBottom);
       })
-      .catch(err => console.error('load history', err))
+      .catch((err) => console.error("load history", err));
 
     // connect WS
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    let host = window.location.host
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    let host = window.location.host;
     // when dev server (vite) is used on :5173, connect backend on :8080
-    if (host.includes(':5173')) host = window.location.hostname + ':8080'
-    const url = `${protocol}://${host}/ws?username=${encodeURIComponent(this.username)}&room=${encodeURIComponent(this.roomID)}`
-    this.ws = new WebSocket(url)
+    if (host.includes(":5173")) host = window.location.hostname + ":8080";
+    const url = `${protocol}://${host}/ws?username=${encodeURIComponent(
+      this.username
+    )}&room=${encodeURIComponent(this.roomID)}`;
+    this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
-      console.log('ws open')
-    }
+      console.log("ws open");
+    };
     this.ws.onmessage = (ev) => {
       try {
-        const payload = JSON.parse(ev.data)
-        if (payload.type === 'message' && payload.message) {
-          const m = payload.message
+        const payload = JSON.parse(ev.data);
+        if (payload.type === "message" && payload.message) {
+          const m = payload.message;
           // append (chronological order)
           this.rawMessages.push({
             id: m.id,
             sender: m.sender,
             content: m.content,
-            ts: m.ts
-          })
-          this.$nextTick(this.scrollBottom)
-        } else if (payload.type === 'system') {
+            ts: m.ts,
+          });
+          this.$nextTick(this.scrollBottom);
+        } else if (payload.type === "system") {
           // optional system notifications
         }
       } catch (e) {
-        console.error('invalid payload', e)
+        console.error("invalid payload", e);
       }
-    }
+    };
     this.ws.onclose = () => {
-      console.log('ws closed, will try reconnect in 1s')
-      setTimeout(() => location.reload(), 1000) // simple approach
-    }
+      console.log("ws closed, will try reconnect in 1s");
+      setTimeout(() => location.reload(), 1000); // simple approach
+    };
   },
   methods: {
     sendMessage() {
-      const text = this.input.trim()
-      if (!text) return
+      const text = this.input.trim();
+      if (!text) return;
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(text)
-        this.input = '' // clear after send
+        this.ws.send(text);
+        this.input = ""; // clear after send
       }
     },
     scrollBottom() {
-      const el = this.$refs.chatBox
-      if (el) el.scrollTop = el.scrollHeight
+      const el = this.$refs.chatBox;
+      if (el) el.scrollTop = el.scrollHeight;
     },
     formatTime(ts) {
-      const d = new Date(ts)
-      return d.toLocaleTimeString()
-    }
-  }
-}
+      const d = new Date(ts);
+      return d.toLocaleTimeString();
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -149,13 +169,13 @@ export default {
 
 /* message bubble common */
 .msg-bubble {
-  display: block;           /* mỗi tin 1 dòng */
+  display: block; /* mỗi tin 1 dòng */
   padding: 10px 12px;
   border-radius: 12px;
-  margin: 10px 0;          /* khoảng cách giữa các nhóm */
+  margin: 10px 0; /* khoảng cách giữa các nhóm */
   max-width: 70%;
   word-wrap: break-word;
-  box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   line-height: 1.35;
   position: relative;
 }
@@ -188,7 +208,7 @@ export default {
 /* sender label: italic & faded and positioned above the group */
 .sender-label {
   font-style: italic;
-  color: rgba(33,37,41,0.6);
+  color: rgba(33, 37, 41, 0.6);
   margin-bottom: 6px;
   font-size: 0.9rem;
 }
@@ -213,6 +233,8 @@ export default {
 
 /* responsive */
 @media (max-width: 576px) {
-  .msg-bubble { max-width: 90%; }
+  .msg-bubble {
+    max-width: 90%;
+  }
 }
 </style>

@@ -14,9 +14,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
-
 type Message struct {
 	ID      int64  `json:"id"`
 	Room    string `json:"room"`
@@ -44,7 +43,7 @@ func ensureDB(path string) (*sql.DB, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		needInit = true
 	}
-	d, err := sql.Open("sqlite3", path)
+	d, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
 	}
